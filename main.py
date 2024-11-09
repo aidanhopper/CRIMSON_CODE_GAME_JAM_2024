@@ -13,22 +13,13 @@ FPS = 60
 # Colors
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-BLUE = (0, 128, 255)
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
 
 # Player properties
-PLAYER_WIDTH = 50
-PLAYER_HEIGHT = 50
 PLAYER_SPEED = 5
 PLAYER_JUMP_VELOCITY = -15
 GRAVITY = 0.8
 
 # Platform properties
-PLATFORM_WIDTH = 70
-PLATFORM_HEIGHT = 10
-PLATFORM_COLOR = GREEN
-INITIAL_PLATFORMS = 10
 PLATFORM_VERTICAL_DISTANCE = 80  # Max distance between platforms vertically
 
 # Fonts
@@ -36,8 +27,23 @@ FONT_NAME = pygame.font.match_font('arial')
 
 # Set up the display
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-pygame.display.set_caption("Doodle Jump Clone")
+pygame.display.set_caption("Doodle Jump Clone with Sprites")
 clock = pygame.time.Clock()
+
+# Load Images
+try:
+    player_image = pygame.image.load('assets/player.png').convert_alpha()
+    platform_image = pygame.image.load('assets/platform.png').convert_alpha()
+    background_image = pygame.image.load('assets/background.png').convert()
+except pygame.error as e:
+    print(f"Error loading images: {e}")
+    pygame.quit()
+    sys.exit()
+
+# Scale images
+player_image = pygame.transform.scale(player_image, (50, 50))
+platform_image = pygame.transform.scale(platform_image, (70, 10))
+background_image = pygame.transform.scale(background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
 # Helper functions
 def draw_text(surface, text, size, color, x, y, align="topleft"):
@@ -51,8 +57,7 @@ def draw_text(surface, text, size, color, x, y, align="topleft"):
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = pygame.Surface((PLAYER_WIDTH, PLAYER_HEIGHT))
-        self.image.fill(BLUE)
+        self.image = player_image
         self.rect = self.image.get_rect()
         self.rect.center = (SCREEN_WIDTH / 2, SCREEN_HEIGHT - 100)
         self.vel_y = 0
@@ -85,24 +90,23 @@ class Player(pygame.sprite.Sprite):
 class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
-        self.image = pygame.Surface((PLATFORM_WIDTH, PLATFORM_HEIGHT))
-        self.image.fill(PLATFORM_COLOR)
+        self.image = platform_image
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
 
 # Game functions
 def generate_platforms(platforms, all_sprites):
-    while len(platforms) < INITIAL_PLATFORMS:
+    while len(platforms) < 10:
         last_platform = max(platforms, key=lambda p: p.rect.y)
         new_y = last_platform.rect.y - random.randint(50, PLATFORM_VERTICAL_DISTANCE)
-        new_x = random.randint(0, SCREEN_WIDTH - PLATFORM_WIDTH)
+        new_x = random.randint(0, SCREEN_WIDTH - platform_image.get_width())
         new_platform = Platform(new_x, new_y)
         platforms.add(new_platform)
         all_sprites.add(new_platform)
 
 def show_menu():
-    screen.fill(WHITE)
+    screen.blit(background_image, (0, 0))
     draw_text(screen, "Doodle Jump Clone", 48, BLACK, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4, align="center")
     draw_text(screen, "Press any key to start", 36, BLACK, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, align="center")
     pygame.display.flip()
@@ -117,8 +121,8 @@ def show_menu():
                 waiting = False
 
 def show_game_over(score):
-    screen.fill(WHITE)
-    draw_text(screen, "Game Over", 48, RED, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4, align="center")
+    screen.blit(background_image, (0, 0))
+    draw_text(screen, "Game Over", 48, (255, 0, 0), SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4, align="center")
     draw_text(screen, f"Score: {score}", 36, BLACK, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, align="center")
     draw_text(screen, "Press R to Restart or Q to Quit", 24, BLACK, SCREEN_WIDTH / 2, SCREEN_HEIGHT * 3 / 4, align="center")
     pygame.display.flip()
@@ -147,8 +151,8 @@ def main_game():
     all_sprites.add(player)
 
     # Create initial platforms
-    for i in range(INITIAL_PLATFORMS):
-        x = random.randint(0, SCREEN_WIDTH - PLATFORM_WIDTH)
+    for i in range(10):
+        x = random.randint(0, SCREEN_WIDTH - platform_image.get_width())
         y = SCREEN_HEIGHT - i * 80
         p = Platform(x, y)
         all_sprites.add(p)
@@ -175,7 +179,7 @@ def main_game():
                 if player.rect.bottom <= hits[0].rect.bottom + player.vel_y:
                     player.rect.bottom = hits[0].rect.top
                     player.jump()
-        
+
         # Scroll the screen
         if player.rect.top <= SCREEN_HEIGHT / 4:
             player.rect.top = SCREEN_HEIGHT / 4
@@ -188,11 +192,11 @@ def main_game():
                     if len(platforms) > 0:
                         last_platform = min(platforms, key=lambda p: p.rect.y)
                         new_y = last_platform.rect.y - random.randint(50, PLATFORM_VERTICAL_DISTANCE)
-                        new_x = random.randint(0, SCREEN_WIDTH - PLATFORM_WIDTH)
+                        new_x = random.randint(0, SCREEN_WIDTH - platform_image.get_width())
                         new_platform = Platform(new_x, new_y)
                         platforms.add(new_platform)
                         all_sprites.add(new_platform)
-        
+
         # Generate more platforms if needed
         generate_platforms(platforms, all_sprites)
 
@@ -201,8 +205,11 @@ def main_game():
             running = False
 
         # Draw everything
-        screen.fill(WHITE)
+        screen.blit(background_image, (0, 0))
         all_sprites.draw(screen)
+
+        # Optionally, draw additional elements (e.g., sun, clouds)
+        pygame.draw.circle(screen, (255, 255, 0), (50, 50), 20)  # Sun
 
         # Display the score
         draw_text(screen, f"Score: {player.score}", 24, BLACK, 10, 10)
