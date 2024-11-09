@@ -19,7 +19,6 @@ WHITE = (255, 255, 255)
         
 if __name__ == '__main__':
     running = True
-    board = ChessBoard()
 
     while running:
         for event in pygame.event.get():
