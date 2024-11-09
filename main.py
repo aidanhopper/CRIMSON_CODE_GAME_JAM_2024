@@ -1,29 +1,31 @@
-SCREEN_WIDTH = 1024
-SCREEN_HEIGHT = 1024
-
-
+import pygame
+import sys
 
 # Initialize Pygame
 pygame.init()
 
-
-# Set up the display
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))  # Width: 800, Height: 600
-pygame.display.set_caption("Basic Pygame Window")
-
+# Set up display
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Pygame Window Example")
 
 # Set up colors
-BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
+BLUE = (0, 0, 255)
 
-        
-if __name__ == '__main__':
-    running = True
+# Game loop
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
 
-    while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+    # Fill the screen with blue color
+    screen.fill(BLUE)
 
-    pygame.quit()
-    sys.exit()
+    # Update the display
+    pygame.display.flip()
+
+# Clean up and close the window
+pygame.quit()
+sys.exit()
