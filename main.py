@@ -35,15 +35,17 @@ try:
     player_image = pygame.image.load('assets/player.png').convert_alpha()
     platform_image = pygame.image.load('assets/platform.png').convert_alpha()
     background_image = pygame.image.load('assets/background.png').convert()
+    game_over_image = pygame.image.load('assets/game_over.png').convert_alpha()  # Load Game Over Image
 except pygame.error as e:
     print(f"Error loading images: {e}")
     pygame.quit()
     sys.exit()
 
-# Scale images
+# Scale images as needed
 player_image = pygame.transform.scale(player_image, (50, 50))
 platform_image = pygame.transform.scale(platform_image, (70, 10))
 background_image = pygame.transform.scale(background_image, (SCREEN_WIDTH, SCREEN_HEIGHT))
+game_over_image = pygame.transform.scale(game_over_image, (SCREEN_WIDTH, SCREEN_HEIGHT))  # Scale to fit screen
 
 # Helper functions
 def draw_text(surface, text, size, color, x, y, align="topleft"):
@@ -121,10 +123,13 @@ def show_menu():
                 waiting = False
 
 def show_game_over(score):
-    screen.blit(background_image, (0, 0))
-    draw_text(screen, "Game Over", 48, (255, 0, 0), SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4, align="center")
-    draw_text(screen, f"Score: {score}", 36, BLACK, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, align="center")
-    draw_text(screen, "Press R to Restart or Q to Quit", 24, BLACK, SCREEN_WIDTH / 2, SCREEN_HEIGHT * 3 / 4, align="center")
+    # Blit the Game Over image to cover the entire screen
+    screen.blit(game_over_image, (0, 0))  # Position at top-left corner
+
+    # Overlay the score on the Game Over image
+    draw_text(screen, f"Score: {score}", 36, (255, 255, 255), SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 50, align="center")
+    draw_text(screen, "Press R to Restart or Q to Quit", 24, (255, 255, 255), SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 10, align="center")
+    
     pygame.display.flip()
     waiting = True
     while waiting:
