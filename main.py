@@ -18,6 +18,7 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Doodle Jump Clone")
 clock = pygame.time.Clock()
 
+
 # Player class
 class Player(pygame.sprite.Sprite):
     def __init__(self):
@@ -49,6 +50,7 @@ class Player(pygame.sprite.Sprite):
         if self.rect.left < 0:
             self.rect.right = SCREEN_WIDTH
 
+
 # Platform class
 class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y):
@@ -59,69 +61,102 @@ class Platform(pygame.sprite.Sprite):
         self.rect.x = x
         self.rect.y = y
 
-# Create sprite groups
-all_sprites = pygame.sprite.Group()
-platforms = pygame.sprite.Group()
 
-# Create the player
-player = Player()
-all_sprites.add(player)
+def main_menu():
+    menu = True
+    while menu:
+        screen.fill(WHITE)
+        font = pygame.font.Font(None, 74)
+        text = font.render("Doodle Jump", True, BLACK)
+        screen.blit(text, (50, 200))
 
-# Create initial platforms
-for i in range(7):
-    p = Platform(random.randint(0, SCREEN_WIDTH - 70), i * 100)
-    all_sprites.add(p)
-    platforms.add(p)
+        font_small = pygame.font.Font(None, 36)
+        text_start = font_small.render("Press SPACE to Start", True, BLACK)
+        screen.blit(text_start, (80, 300))
 
-# Main game loop
-running = True
-while running:
-    clock.tick(FPS)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    menu = False
 
-    # Event handling
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+        pygame.display.update()
+        clock.tick(FPS)
+
+
+def main_game():
+    # Create sprite groups
+    all_sprites = pygame.sprite.Group()
+    platforms = pygame.sprite.Group()
+
+    # Create the player
+    player = Player()
+    all_sprites.add(player)
+
+    # Create initial platforms
+    for i in range(7):
+        p = Platform(random.randint(0, SCREEN_WIDTH - 70), i * 100)
+        all_sprites.add(p)
+        platforms.add(p)
+
+    # Main game loop
+    running = True
+    while running:
+        clock.tick(FPS)
+
+        # Event handling
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        # Update
+        player.update()
+
+        # Check for collision with platforms
+        if player.vel_y > 0:
+            hits = pygame.sprite.spritecollide(player, platforms, False)
+            if hits:
+                player.rect.bottom = hits[0].rect.top
+                player.vel_y = -10  # Make the player jump
+
+        # If player reaches top quarter of the screen, move platforms down
+        if player.rect.top <= SCREEN_HEIGHT / 4:
+            player.rect.top = SCREEN_HEIGHT / 4
+            for platform in platforms:
+                platform.rect.y += abs(player.vel_y)
+
+                # Remove platforms that are off the screen
+                if platform.rect.top >= SCREEN_HEIGHT:
+                    platform.kill()
+                    player.score += 1
+                    # Create new platform
+                    new_platform = Platform(
+                        random.randint(0, SCREEN_WIDTH - 70), random.randint(-50, 0)
+                    )
+                    all_sprites.add(new_platform)
+                    platforms.add(new_platform)
+
+        # Game over condition
+        if player.rect.top > SCREEN_HEIGHT:
             running = False
 
-    # Update
-    player.update()
+        # Draw everything
+        screen.fill(WHITE)
+        all_sprites.draw(screen)
 
-    # Check for collision with platforms
-    if player.vel_y > 0:
-        hits = pygame.sprite.spritecollide(player, platforms, False)
-        if hits:
-            player.rect.bottom = hits[0].rect.top
-            player.vel_y = -10  # Make the player jump
+        # Display the score
+        font = pygame.font.Font(None, 36)
+        text = font.render("Score: " + str(player.score), True, BLACK)
+        screen.blit(text, (10, 10))
 
-    # If player reaches top quarter of the screen, move platforms down
-    if player.rect.top <= SCREEN_HEIGHT / 4:
-        player.rect.top = SCREEN_HEIGHT / 4
-        for platform in platforms:
-            platform.rect.y += abs(player.vel_y)
+        # Update the display
+        pygame.display.flip()
 
-            # Remove platforms that are off the screen
-            if platform.rect.top >= SCREEN_HEIGHT:
-                platform.kill()
-                player.score += 1
-                # Create new platform
-                new_platform = Platform(random.randint(0, SCREEN_WIDTH - 70), random.randint(-50, 0))
-                all_sprites.add(new_platform)
-                platforms.add(new_platform)
+    pygame.quit()
 
-    # Game over condition
-    if player.rect.top > SCREEN_HEIGHT:
-        running = False
 
-    # Draw everything
-    screen.fill(WHITE)
-    all_sprites.draw(screen)
-
-    # Display the score
-    font = pygame.font.Font(None, 36)
-    text = font.render("Score: " + str(player.score), True, BLACK)
-    screen.blit(text, (10, 10))
-
-    # Update the display
-    pygame.display.flip()
-
-pygame.quit()
+# Start the game
+main_menu()
+main_game()
